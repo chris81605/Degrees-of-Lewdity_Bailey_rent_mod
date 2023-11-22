@@ -1,0 +1,15 @@
+				<div class="ironman-slider" id="sliderRentMode">
+					<<numberslider "$rentmod" $rentmod 0.1 3 0.1 $ironmanmode>>
+				</div>
+				
+			
+				<label>
+					<<checkbox "$rent_acc_mode" "f" "t" autocheck>>啟用租金累加
+				</label>
+				<div class="small-description">
+					積欠的欠款會逐週累計，直到清償為止。<br>
+					<span class="red">欠債有如滾雪球，永無止境。</span>
+				</div>
+				<div class="small-description">
+				租金累加開啟後，中途關閉，累計的部分將無法取消。<br>
+				</div>

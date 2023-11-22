@@ -1,0 +1,25 @@
+		<<if $renttime lte 0>>
+		
+		
+			<<if $rent_acc_mode is "t">> 
+				<<set $renttime_delay to -$renttime >>
+				<<set $renttime_delay_money to $rentmoney_accumulation * $rent_delay >>			
+				<<if $renttime lt 0 and $renttime_delay_money isnot 0 and $renttime_delay_money isnot undefined>>
+					<li>你正在躲債，你躲了<span class="red">$renttime_delay</span>天，貝利找到你後會收取本周的欠款<<printmoney $rentmoney_current>>及之前的欠款<<printmoney $renttime_delay_money>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>
+				<<elseif $renttime lt 0 >>
+					<li>你正在躲債，你躲了<span class="red">$renttime_delay</span>天，貝利找到你後會收取你欠下的<<printmoney $rentmoney_current>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>
+				<</if>>
+				<<if $renttime lt 0 and $renttime gt -7 >>				
+					<li>你消失了<span class="blue">$renttime_delay</span>天，贝利正在找你，并且打算收取你欠下的<<printmoney $rentmoney>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>			
+				<<elseif $renttime lte -7 and $renttime gt -14 >>
+					<li>你消失了<span class="purple">好幾天</span>，贝利正在找你，并且打算收取你欠下的<<printmoney $rentmoney>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>		
+				<<elseif $renttime lte -14 and $renttime gt -28>>
+					<li>你消失了<span class="pink"> $rent_delay </span>週，贝利正在打探你的下落，並收取你欠下的<<printmoney $rentmoney>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>
+				<<elseif $renttime lte -28>>	
+					<li>你消失了<span class="red"> $rent_delay </span>週，贝利掘地三尺也要找到你，收取你欠下的<<printmoney $rentmoney>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>
+				<<elseif $renttime is 0>>
+					<li>贝利正在找你，并且打算收取你欠下的<<printmoney $rentmoney>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>
+				<</if>>
+			<<else >>	
+				<li>贝利正在找你，并且打算收取你欠下的<<printmoney $rentmoney>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>
+			<</if>>
