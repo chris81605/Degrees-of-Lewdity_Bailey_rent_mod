@@ -1,21 +1,24 @@
 <<widget "schoolday">>
 <<if $rent_acc_mode is "t">> 	<!--功能啟用，於設置選單中啟用-->	
 	<<if $renttime lte -7 and $run_one_per_week is undefined>>		<!--功能初始化，當遲交7天時觸發-->	
-		<<set $run_one_per_day to Time.monthDay >>	<!--同一天只執行一次，計數器初始化-->
-		<<set $run_one_per_week to -($renttime%7) >>	<!--每七天累加一次遲繳租金，計數器初始化，計算當前拖欠租金為X週又Y天，取Y為計數器初始值(%=取餘數)-->					
+		<<set $run_one_per_day to Time.days >>	<!--每天只執行一次，計數器初始化-->
+		<<set $run_one_per_week to (Time.days - ($renttime%7)) >>	<!--每七天累加一次遲繳租金，計數器初始化，計算當前拖欠租金為X週又Y天(%7=取餘數)，下一次累加日為當天(Time.days)+Y-->					
+		<<if - ($renttime%7) is 0>>
+			<<set $run_one_per_week += 7>>
+			<<set $run_one_per_week_TEST to "pass" >>
+		<</if>> 	
 		<<set $rent_delay to -(Math.ceil($renttime/7))  >>	<!--計算幾周沒繳租金-->
 		<<set $rentmoney_current to $rentmoney  >>		 <!--獲取當前每周租金-->	 
 		<<set $rentmoney_accumulation to $rentmoney >> <!--獲取當前每周租金(後續用於累加計算-->	 
 		<<set $rentmoney to $rentmoney_current + $rentmoney_accumulation * $rent_delay >>	<!--執行計算，公式：當前租金+每周應繳租金*遲交週數 -->	
-	<<elseif $run_one_per_day isnot Time.monthDay and $run_one_per_week lt 6>>	<!--判斷是否過了一周-->
+	<<elseif $run_one_per_day isnot Time.days and $run_one_per_week isnot Time.days>>	<!--尚未到達下一次累加日-->
 		<<set $rent_delay to -(Math.ceil($renttime/7))  >>	<!--計算幾周沒繳租金-->
-		<<set $run_one_per_week += 1 >>		<!--判斷是否過了一周的計數器+1-->		
-		<<set $run_one_per_day to Time.monthDay >>	<!--同一天只執行一次，計數器重置-->
-	<<elseif $run_one_per_day isnot Time.monthDay and $run_one_per_week gte 6>>	<!--每週累加一次遲繳租金-->
+		<<set $run_one_per_day to Time.days >>	<!--每天只執行一次，計數器更新-->
+	<<elseif $run_one_per_day isnot Time.days and $run_one_per_week is Time.days>>	<!--到達累加日-->
 		<<set $rent_delay to -(Math.ceil($renttime/7))  >>	<!--計算幾周沒繳租金-->
 		<<set $rentmoney to $rentmoney_current + $rentmoney_accumulation * $rent_delay >>	<!--執行計算，公式：當前租金+每周應繳租金*遲交週數 -->		
-		<<set $run_one_per_day to Time.monthDay >>	<!--同一天只執行一次，計數器重置-->		
-		<<set $run_one_per_week to 0 >>				<!--判斷是否過了一周的計數器重置-->						
+		<<set $run_one_per_week to Time.days + 7 >>				<!--更新下一次累加日-->		
+		<<set $run_one_per_day to Time.days >>	<!--每天只執行一次，計數器更新-->	
 	<<elseif $renttime lt 0 and $renttime gt -7>>	<!--用於日誌顯示：躲債不滿一週-->
 		<<set $rentmoney_current to $rentmoney  >>		 
 		<<set $rentmoney_accumulation to $rentmoney >>
