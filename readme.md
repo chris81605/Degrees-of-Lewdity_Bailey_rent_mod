@@ -4,6 +4,9 @@
 
 ![img](https://github.com/chris81605/Degrees-of-Lewdity_Bailey_rent_mod/blob/main/preview.jpg)
 # 更新日誌  
+**1.1.0**  
+* 計算邏輯分離  
+
 **1.0.2**  
 * 取消不必要的全局變量  
 * 嘗試優化代碼(失敗，代碼還多了三行QAQ)  
