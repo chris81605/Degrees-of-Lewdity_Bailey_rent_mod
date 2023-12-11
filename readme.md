@@ -18,6 +18,12 @@
 
 ![img](https://github.com/chris81605/Degrees-of-Lewdity_Bailey_rent_mod/blob/main/preview.jpg)
 # 更新日誌  
+**1.2.0**
+* 租金累積計算方式變更
+    * 依據rentstage累加
+    * 每躲債一週renstage加1(例如：開新檔即開始躲債，遊戲時間三週時，欠款為100+300+500)
+* 增加對貝利的小金庫取回租金兼容  
+
 **1.1.0**  
 * 計算邏輯分離  
 

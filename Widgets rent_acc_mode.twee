@@ -9,18 +9,36 @@
 				<<set $run_one_per_week_TEST to "pass" >>
 			<</if>> 	
 			<<set $rent_delay to -(Math.ceil($renttime/7))  >>	<!--計算幾周沒繳租金-->
-			<<set $rentmoney_current to $rentmoney  >>		 <!--獲取當前每周租金-->	 
-			<<set $rentmoney_accumulation to $rentmoney >> <!--獲取當前每周租金(後續用於累加計算-->	 
-			<<set $rentmoney to $rentmoney_current + $rentmoney_accumulation * $rent_delay >>	<!--執行計算，公式：當前租金+每周應繳租金*遲交週數 -->	
+		    <<set $rentmoney_current to [10000,30000,50000,70000,100000,150000,200000][Math.clamp($rentstage,1,6)]>> <!--計算本週租金-->
+			<<set $rentmoney_current to Math.floor($rentmoney_current * $rentmod)>>
+			<<if $robinpaid is 1>>
+		        <<set $rentmoney_current *= 2>>
+	        <</if>> 		 
+		    <<for _i to $rent_delay; _i gte 1; _i-->><!--計算未繳累積租金-->
+			    <<set $rentmoney_accumulation to [10000,30000,50000,70000,100000,150000,200000][Math.clamp($rentstage,1,6)]>> 
+			    <<rent_acc_mode_rentmod>>
+			    <<set $rentmoney += $rentmoney_accumulation>>
+			    <<set $rentmoney += ($babyRent or 0)>>
+			    <<set $rentstage += 1>>
+			<</for>>
+			<<baileypiggybanks_acc>> <!--貝利的小金庫兼容-->
 		<<elseif $run_one_per_day isnot Time.days and $run_one_per_week isnot Time.days>>	<!--尚未到達下一次累加日-->
 			<<set $rent_delay to -(Math.ceil($renttime/7))  >>	<!--計算幾周沒繳租金-->
 			<<set $run_one_per_day to Time.days >>	<!--每天只執行一次，計數器更新-->
 		<<elseif $run_one_per_day isnot Time.days and $run_one_per_week is Time.days>>	<!--到達累加日-->
-			<<set $rent_delay to -(Math.ceil($renttime/7))  >>	<!--計算幾周沒繳租金-->
-			<<set $rentmoney to $rentmoney_current + $rentmoney_accumulation * $rent_delay >>	<!--執行計算，公式：當前租金+每周應繳租金*遲交週數 -->		
-			<<set $run_one_per_week to Time.days + 7 >>				<!--更新下一次累加日-->		
-			<<set $run_one_per_day to Time.days >>	<!--每天只執行一次，計數器更新-->	
-		<<elseif $renttime lt 0 and $renttime gt -7>>	<!--用於日誌顯示：躲債不滿一週-->
+			<<set $rent_delay +=1>>	<!--沒繳租金週數+1-->
+			<<set $rentmoney_current to [10000,30000,50000,70000,100000,150000,200000][Math.clamp($rentstage,1,6)]>><!--計算本週租金-->
+			<<set $rentmoney_current to Math.floor($rentmoney_current * $rentmod)>>
+			<<if $robinpaid is 1>>
+		        <<set $rentmoney_current *= 2>>
+	        <</if>> 
+	        <<set $rentmoney_accumulation to $rentmoney>> <!--獲取累積未繳租金-->
+			<<set $rentmoney to $rentmoney_current + $rentmoney_accumulation>>
+			<<baileypiggybanks_acc>>                        <!--貝利的小金庫兼容-->
+			<<set $rentstage += 1>>		
+			<<set $run_one_per_week to Time.days + 7 >>	<!--更新下一次累加日-->		
+			<<set $run_one_per_day to Time.days >>	    <!--每天只執行一次，計數器更新-->	
+		<<elseif $renttime lt 0 and $renttime gt -7>>	    <!--用於日誌顯示：躲債不滿一週-->
 			<<set $rentmoney_current to $rentmoney  >>		 
 			<<set $rentmoney_accumulation to $rentmoney >>
 			<<set $rent_delay to -(Math.ceil($renttime/7))  >>	
@@ -32,6 +50,8 @@
 			<<unset $rentmoney_accumulation >>
 			<<unset $renttime_delay >>
 			<<unset $renttime_delay_money >>
+		<<elseif $renttime is 4>>
+		    <<unset $Baileys_piggy_banks_acc>>
 		<</if>>		
 	<<elseif $rent_acc_mode is "f">> 	<!--如果中途關閉則在交租金後重置-->
 		<<if $renttime gte 0 and $run_one_per_week isnot undefined>> 
@@ -45,11 +65,21 @@
 		<</if>>	
 	<</if>>
 <</widget>>	
+
+<<widget "rent_acc_mode_rentmod">>
+	<<set $rentmoney_accumulation to Math.floor($rentmoney_accumulation * $rentmod)>>
+	<<if $robinpaid is 1>>
+		<<set $rentmoney_accumulation *= 2>>
+	<</if>>
+<</widget>>
 	
 <<widget "rent_acc_mode_log">>
 	<<if $rent_acc_mode is "t">> 
 		<<set _renttime_delay to -$renttime >>
-		<<set _renttime_delay_money to $rentmoney_accumulation * $rent_delay >>			
+		<<set _renttime_delay_money to $rentmoney - $rentmoney_current>>
+		<!--舊計算方式
+		<<set _renttime_delay_money to $rentmoney_accumulation * $rent_delay >>	
+		舊計算方式-->		
 		<<if $renttime lt 0 and _renttime_delay_money isnot 0 and _renttime_delay_money isnot undefined>>
 			<li>你正在躲債，你躲了<span class="red">_renttime_delay</span>天，貝利找到你後會收取本周的欠款<<printmoney $rentmoney_current>>及之前的欠款<<printmoney _renttime_delay_money>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>
 		<<elseif $renttime lt 0 >>
@@ -70,3 +100,7 @@
 		<li>贝利正在找你，并且打算收取你欠下的<<printmoney $rentmoney>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>
 	<</if>>
 <</widget>>	
+
+<<widget "baileypiggybanks_acc">> <!--貝利的小金庫取回租金兼容-->
+    <<set $Baileys_piggy_banks_acc to $rentmomey>>
+<</widget>>

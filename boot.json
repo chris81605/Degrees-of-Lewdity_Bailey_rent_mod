@@ -1,10 +1,10 @@
 {
   "name": "Bailey rent mod",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "styleFileList": [],
   "scriptFileList": [],
   "tweeFileList": [
-  "Widgets rent_acc_mode.twee"
+    "Widgets rent_acc_mode.twee"
   ],
   "imgFileList": [
     "preview.jpg"
@@ -14,7 +14,8 @@
     "addon-replace/log.txt",
     "addon-replace/swich.txt",
     "readme.md",
-    "preview.jpg"
+    "preview.jpg",
+    "LICENSE.txt"
   ],
   "addonPlugin": [
     {
