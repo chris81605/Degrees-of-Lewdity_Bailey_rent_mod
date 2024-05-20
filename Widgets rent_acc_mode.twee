@@ -21,7 +21,6 @@
 			    <<set $rentmoney += ($babyRent or 0)>>
 			    <<set $rentstage += 1>>
 			<</for>>
-			<<baileypiggybanks_acc>> <!--貝利的小金庫兼容-->
 		<<elseif $run_one_per_day isnot Time.days and $run_one_per_week isnot Time.days>>	<!--尚未到達下一次累加日-->
 			<<set $rent_delay to -(Math.ceil($renttime/7))  >>	<!--計算幾周沒繳租金-->
 			<<set $run_one_per_day to Time.days >>	<!--每天只執行一次，計數器更新-->
@@ -34,7 +33,6 @@
 	        <</if>> 
 	        <<set $rentmoney_accumulation to $rentmoney>> <!--獲取累積未繳租金-->
 			<<set $rentmoney to $rentmoney_current + $rentmoney_accumulation>>
-			<<baileypiggybanks_acc>>                        <!--貝利的小金庫兼容-->
 			<<set $rentstage += 1>>		
 			<<set $run_one_per_week to Time.days + 7 >>	<!--更新下一次累加日-->		
 			<<set $run_one_per_day to Time.days >>	    <!--每天只執行一次，計數器更新-->	
@@ -47,11 +45,9 @@
 			<<unset $run_one_per_day >>
 			<<unset $rent_delay >>
 			<<unset $rentmoney_current >>
-			<<unset $rentmoney_accumulation >>
+			<!--<<unset $rentmoney_accumulation >> 留下累加數據以供貝利小金庫使用-->
 			<<unset $renttime_delay >>
 			<<unset $renttime_delay_money >>
-		<<elseif $renttime is 4>>
-		    <<unset $Baileys_piggy_banks_acc>>
 		<</if>>		
 	<<elseif $rent_acc_mode is "f">> 	<!--如果中途關閉則在交租金後重置-->
 		<<if $renttime gte 0 and $run_one_per_week isnot undefined>> 
@@ -101,6 +97,3 @@
 	<</if>>
 <</widget>>	
 
-<<widget "baileypiggybanks_acc">> <!--貝利的小金庫取回租金兼容-->
-    <<set $Baileys_piggy_banks_acc to $rentmomey>>
-<</widget>>
