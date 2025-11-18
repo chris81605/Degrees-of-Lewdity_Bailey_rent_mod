@@ -1,18 +1,21 @@
 {
   "name": "Bailey rent mod",
-  "version": "1.3.1",
+  "version": "2.0.1",
   "styleFileList": [],
   "scriptFileList": [],
+  "scriptFileList_preload":["scriptPreload/brm_regist.js"],
+  "scriptFileList_inject_early": ["scriptEarly/brm_framework_detector.js"],
   "tweeFileList": [
-    "Widgets rent_acc_mode.twee"
+    "game/Widgets_rent_acc_mode.twee",
+    "game/bailey_banks/bailey_banks_init.twee",
+    "game/bailey_banks/bailey_banks_widget.twee",
+    "game/bailey_banks/bailey_banks.twee",
+    "game/bailey_banks/bailey_banks_steal.twee"
   ],
   "imgFileList": [
     "preview.jpg"
   ],
   "additionFile": [
-    "addon-replace/core_code.txt",
-    "addon-replace/log.txt",
-    "addon-replace/swich.txt",
     "readme.md",
     "preview.jpg",
     "LICENSE.txt"
@@ -22,22 +25,12 @@
       "modName": "TweeReplacer",
       "addonName": "TweeReplacerAddon",
       "modVersion": "1.0.0",
-      "params": [
+      "params": [        
         {
-          "passage": "Widgets Text",
-          "findString": "<<widget \"schoolday\">>",
-          "replaceFile": "addon-replace/core_code.txt"
-        },
-        {
-          "passage": "Widgets Journal",
-          "findString": "\t\t\t\t<<if $renttime lte 0>>\n\t\t\t\t\t<li>贝利正在找你，并且打算收取你欠下的<<printmoney $rentmoney>><<babyRentDisplay \"还有代替你照顾孩子的\" \"\" \"gold\">>。</li>",
-          "replaceFile": "addon-replace/log.txt"
-        },
-        {
-          "passage": "Widgets Settings",
-          "findString": "\t\t\t\t<div class=\"ironman-slider\" id=\"sliderRentMode\">\n\t\t\t\t\t<<numberslider \"$rentmod\" $rentmod 0.1 3 0.1 $ironmanmode>>\n\t\t\t\t</div>",
-          "replaceFile": "addon-replace/swich.txt"
-        }
+          "passage": "Bailey's Office",
+          "findString": "<<if _options isnot 2>>",
+          "replace": "<<link [[查看貝利的保險箱|bailey_banks]]>><</link>><br>\n<<if _options isnot 2>>"
+        }     
       ]
     }
   ],
@@ -57,6 +50,10 @@
     {
       "modName": "ReplacePatcher",
       "version": ">=1.0.0"
+    },
+    {
+      "modName": "SweetAlert2Mod",
+      "version": "^1.0.0"
     }
   ]
 }
