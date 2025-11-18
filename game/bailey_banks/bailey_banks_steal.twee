@@ -1,0 +1,63 @@
+:: bailey_banks_steal
+<!-- 調用封裝的 widget 來執行開鎖和盜竊 -->
+<<stealFromSafe>>
+
+<!--可能取上一次被貝利收走的租金-->
+<<if $renttime is 7>>
+    <!-- 顯示成功取回上次被收走的租金的狀態 -->
+<</if>>
+<!-- 根據結果顯示不同的文本 -->
+<<if _result == "成功開鎖並盜竊">>
+    <!-- 顯示開鎖並盜竊成功的狀態 -->
+    <<if $stolenAmount gte 500000>>
+        你將金庫裏頭的錢一掃而空，你獲得了<<printmoney $stolenAmount>>，一想到平時貝利是如何敲詐你的，當<<nnpc_his "Bailey">>發現金庫的錢消失不見氣急敗壞的模樣，你的心情大好。
+        <<llstress>>
+        <<stress -20>>
+    <<elseif $stolenAmount gte 300000>>
+        金庫裡有許多錢，你獲得了<<printmoney $stolenAmount>>，滿載而歸讓你情緒高漲。
+        <<lstress>>
+        <<stress -10>>
+    <<elseif $stolenAmount gte 100000>>
+        你把金庫里的錢全收進口袋，你獲得了<<printmoney $stolenAmount>>，收穫還不錯。
+        <<lstress>>
+        <<stress -5>>
+    <<elseif $stolenAmount gte 50000>>
+        你把金庫里的錢全收進口袋，口袋甚至沒裝滿，你獲得了<<printmoney $stolenAmount>>，收穫還行。
+        <<lstress>>
+        <<stress -3>>
+    <<elseif $stolenAmount gte 10000>>
+        金庫裏頭只有少許的錢，你獲得了<<printmoney $stolenAmount>>，或許你得考慮去打劫其他地方？
+    <<elseif $stolenAmount lt 10000>>
+        太慘了！金庫裏頭只有少許的銅板，貝利該不會還有其他地方藏錢吧？<br>
+    <</if>>
+    <<crimeUp 10 "thievery">>
+<</if>>
+
+<<if _result == "成功開鎖但盜竊失敗">>
+    <!-- 顯示開鎖成功但盜竊失敗的狀態 -->
+    撬了半天，鎖一點也沒有撬開的跡象，你不得不承認
+	<span class="red">你的能力不足已撬開它。</span>
+	<<if $skulduggery lt 1000>>
+	    <span class="gold">但你學到一些詭術上的技巧。</span>
+	<</if>>
+<</if>>
+
+<<if _result == "開鎖成功但保險箱內沒有錢">>
+    <!-- 顯示開鎖成功但保險箱內沒有錢的狀態 -->
+    <span class="red">金庫裏頭空空如也</span>，貝利也有沒錢的時候嗎？肯定是藏到其他地方去了！<br>
+<</if>>
+
+<<if _result == "開鎖失敗">>
+    <!-- 顯示開鎖失敗的狀態 -->        
+	<span class="red">你連門鎖都不見得知道怎麼開了，保險箱的鎖對你來說還是太過困難了。</span>
+	<<if $skulduggery lt 1000>>
+	    <span class="gold">但你學到一些詭術上的技巧。</span>
+	<</if>>
+<</if>>
+
+<<if _result == "完蛋！被抓包了！">>
+    <!-- 顯示被抓包的狀態 -->   
+    <span class="red">>被貝利發現了！！！</span><br>
+        待續（後續事件未完成，懲罰暫時為當前租金增加一成）
+<</if>>
+<<getouticon>><<link [[離開|Bailey's Office]]>><<endevent>><</link>><br>

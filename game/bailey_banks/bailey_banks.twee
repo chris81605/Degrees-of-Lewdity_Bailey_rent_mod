@@ -1,1 +1,46 @@
+:: bailey_banks
+<!--貝利的保險箱場景-->
+<<initializeBaileysMoney>><!--初始化貝利的存款-->
+<<initializeSuspicion>><!--初始化懷疑值系統-->
+<<updateBaileysMoney>><!--更新貝利的存款-->
+<<reduceSuspicion>><!--觸法減少懷疑值-->
+<!--清空除錯日誌-->
+<<if $debug is 0>>
+    <<set $Baileys_logs to []>>    
+<</if>>
 
+<<if Time.hour >= 0 && Time.hour <= 6>> 
+    <!-- 時間是 0-6，顯示偷竊選項 -->
+    <<if $hasStolenToday !== Time.days>> <!-- 檢查是否已經偷竊過 -->
+        <p>你悄悄地來到保險箱前……</p><br>
+        <<ind>><<link [[偷竊|bailey_banks_steal]]>>
+            <<if $skulduggery < 1000>>
+                <<set $skulduggery += 10>>
+            <</if>>  
+            <!-- 進行偷竊後，記錄偷竊已經發生過 -->
+            <<set $hasStolenToday = Time.days>> <!-- 設置今天已經偷竊過 -->
+            
+        <</link>>
+        <<if $skulduggery lt 1000>>
+            <<gskulduggery>>
+        <</if>><br>
+    <<else>>
+        <p>你今天已經光顧過貝利的保險箱了，</p>
+        <<if $stolenAmountFinal > 0>>
+            <p>保險箱敞開者門，裡頭空蕩蕩的。</p>
+        <<else>>
+            <p>但一無所獲。</p>    
+        <</if>><br>
+    <</if>>
+<<elseif Time.hour >= 7 && Time.hour <= 9>>
+    <!-- 時間是 7-9，貝利在現場，不能偷竊 -->
+    <p>貝利就在旁邊呢！打量保險箱前可不是什麼好主意，沒事呆在辦公室也是。</p><br>
+<<elseif Time.hour >= 10 && Time.hour <= 17>>
+    <!-- 時間是 10-17，白天，可能被發現 -->
+    <p>現在是白天，打算對貝利的保險箱做什麼還是等夜深人靜後再考慮！</p><br>
+<<elseif Time.hour >= 18 && Time.hour <= 23>>
+    <!-- 時間是 18-23，天色已晚，偷竊風險仍然存在 -->
+    <p>就算天色已暗，也不代表能對貝利的保險箱動手腳，等夜深人靜後再來吧！</p><br>
+<</if>>
+<<getouticon>><<link [[離開|Bailey's Office]]>><<endevent>><</link>><br>
+<<displayLogs>>

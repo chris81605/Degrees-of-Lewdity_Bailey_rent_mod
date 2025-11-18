@@ -1,0 +1,190 @@
+:: bailey_banks_widget [widget]
+
+<<widget "stealFromSafe">>
+    
+    <<if $suspicion >= 80>>
+        <!-- 定義被發現機率計算 -->
+        <<set _baseDetectionChance to 80>> <!-- 基礎被發現機率 80% -->
+        <<set _maxSkill to 1000>> <!-- 偷竊技能的最大值 -->
+        <<set _impact to 70>> <!-- 偷竊技能的影響幅度 -->
+
+        <!-- 計算調整後的被發現機率 -->
+        <<set _adjustedDetectionChance to Math.max(10, _baseDetectionChance - ($skulduggery / _maxSkill * _impact))>>
+
+        <!-- 生成隨機數 -->
+        <<set _detectionRoll to random(1, 100)>>
+
+        <!-- 日誌輸出調試 -->
+        <<run console.log("基礎被發現機率: " + _baseDetectionChance + "%")>>
+        <<run console.log("技能影響幅度: " + _impact + "%")>>
+        <<run console.log("調整後被發現機率: " + _adjustedDetectionChance + "%")>>
+        <<run console.log("隨機檢查值: " + _detectionRoll)>>
+
+        <<if _detectionRoll <= _adjustedDetectionChance>>
+            <!-- 被發現的處理邏輯 -->
+            <<set _detection to true>>            
+        <</if>>
+    <</if>>
+    
+    <<if _detection>>         
+        <<set $suspicion -= 20>> <!-- 降低懷疑值 -->
+        <<money -$money "撬貝利小金庫被發現了">><!-- 扣除所有金錢 -->
+        <<set $rentmoney *= 2>> <!--本次租金翻倍-->
+        <<if $renttime <= 0>>
+            <<set $renttime to 3>>        
+        <</if>>
+        <<set $Baileys_logs.push("被發現偷竊，懷疑值過高")>> <!-- 紀錄偷竊被發現 -->
+        <<run console.log("完蛋！被抓包了！")>>
+        <<set _result to "完蛋！被抓包了！">> <!-- 顯示結果 -->
+    <<else>>
+        <!-- 計算成功率 -->
+        <<set _successRate = ($skulduggery < 300) ? ($skulduggery / 300) * 0.4 : 0.4 + (($skulduggery - 300) / 700) * 0.6>>
+
+        <!-- 生成隨機數並判斷是否解鎖成功 -->
+        <<set _unlockAttempt = Math.random()>>
+        <<if _unlockAttempt < _successRate>>
+            <<set _unlockSuccess to true>>
+        <</if>>            
+        <!-- 將結果紀錄到 $Baileys_logs 數組 -->
+        <<set $Baileys_logs.push("開鎖嘗試: 詭術值 = " + $skulduggery + ", 成功率 = " + (_successRate * 100) + "%, 本次嘗試值 = " + _unlockAttempt + "結果 = " + (_unlockSuccess ? "成功" : "失敗"))>>
+        
+        <!-- 判斷是否解鎖成功 -->
+        <<if _unlockSuccess>>
+            <!-- 開鎖成功 -->
+            <<run console.log("開鎖成功，竊盜技能: " + $skulduggery)>>
+
+            <<if $Baileys_safe_money > 0>> <!-- 檢查保險箱中是否有錢 -->
+                <!-- 保險箱有錢，繼續盜竊邏輯 -->
+                <<set _successChance to random(1, 100)>> <!-- 隨機生成 1 到 100 的數字 -->
+                <<set _baseSuccessChance to 50>> <!-- 基礎成功率 50% -->
+                <<set _adjustedChance to Math.min(100, _baseSuccessChance + Math.floor($skulduggery / 10))>> <!-- 根據竊盜技能計算最終成功機率，保證最大為 100% -->
+            
+                <!-- 顯示調整後的成功機率 -->
+                <<run console.log("基礎成功率: " + _baseSuccessChance + "%，調整後的成功機率: " + _adjustedChance + "%")>>
+
+                <!-- 計算是否成功盜竊 -->
+                <<if _successChance <= _adjustedChance>>
+                    <!-- 盜竊成功 -->
+                    <<set _minBaseAmount to Math.floor($Baileys_safe_money * ($skulduggery / 1000))>> <!-- 根據竊盜技能和保險箱金額調整最小基準金額 -->
+                    <<set _maxBaseAmount to $Baileys_safe_money>> <!-- 最大基準金額設為保險箱金額 -->
+                    <!-- 隨機生成的竊盜金額範圍，根據竊盜技能的最小值來調整 -->
+                    <<set $stolenAmount to random(_minBaseAmount, _maxBaseAmount)>> <!-- 隨機生成金額 -->
+                    <<set $Baileys_safe_money -= $stolenAmount>> <!-- 從保險箱中減去被盜竊的金額 -->
+                    <<money $stolenAmount "撬貝利的小金庫">> <!-- 盜竊的金額加入玩家的可用金額 -->
+                    <<set _result to "成功開鎖並盜竊">> <!-- 記錄成功結果 -->
+                    <<set $stolenAmountFinal to $stolenAmount>> <!-- 記錄盜竊的金額 -->                
+                    <!--增加懷疑值-->
+                    <<increaseSuspicion $stolenAmount>>
+                    <!-- 顯示成功盜竊的金額 -->
+                    <<run console.log("成功盜竊金額: " + $stolenAmountFinal)>>
+                    <!-- 紀錄盜竊行為到 $Baileys_logs -->
+                    <<set $Baileys_logs.push("成功盜竊金額: " + $stolenAmountFinal)>>
+                <<else>>
+                    <!-- 盜竊失敗 -->
+                    <<set _result to "成功開鎖但盜竊失敗">> <!-- 記錄開鎖成功但盜竊失敗的結果 -->
+                    <<set $stolenAmountFinal to 0>> <!-- 失敗則盜竊金額為 0 -->
+                
+                    <!-- 顯示盜竊失敗 -->
+                    <<run console.log("盜竊失敗，機率: " + _successChance + "%，成功機率: " + _adjustedChance + "%")>>
+
+                    <!-- 紀錄盜竊失敗到 $Baileys_logs -->
+                    <<set $Baileys_logs.push("盜竊失敗，機率: " + _successChance + "%，成功機率: " + _adjustedChance + "%")>>
+                <</if>>
+            <<else>>
+                <!-- 保險箱中沒有錢 -->
+                <<set _result to "開鎖成功但保險箱內沒有錢">> <!-- 記錄開鎖成功但保險箱沒有錢的結果 -->
+                <<set $stolenAmountFinal to 0>> <!-- 沒有錢，盜竊金額為 0 -->
+
+                <!-- 顯示保險箱沒有錢 -->
+                <<run console.log("開鎖成功，但保險箱內沒有錢。")>>
+
+                <!-- 紀錄保險箱無錢的情況 -->
+                <<set $Baileys_logs.push("開鎖成功，但保險箱內沒有錢")>>
+            <</if>>
+        <<else>>
+            <!-- 開鎖失敗 -->
+            <<set _result to "開鎖失敗">> <!-- 記錄開鎖失敗的結果 -->
+            <<set $stolenAmountFinal to 0>> <!-- 開鎖失敗則盜竊金額為 0 -->
+
+            <!-- 顯示開鎖失敗 -->
+            <<run console.log("開鎖失敗，竊盜技能不足。")>>
+
+            <!-- 紀錄開鎖失敗的情況 -->
+            <<set $Baileys_logs.push("開鎖失敗，竊盜技能不足")>>
+        <</if>>
+    <</if>>
+<</widget>>
+
+<<widget "increaseSuspicion">>
+    <!-- 偷竊後增加懷疑值 -->
+    <<set $stolenAmount to _args[0]>> <!-- 偷竊金額 -->
+    
+    <!-- 計算懷疑值增加的數量，根據竊盜技能調整 -->
+    <<set _suspicionIncrease to Math.floor($stolenAmount / 50000)>> <!-- 基本增長 1 點每 100 金額 -->
+    <<set _adjustedSuspicionIncrease to _suspicionIncrease - Math.floor($skulduggery / 100)>> <!-- 根據竊盜技能減少懷疑值增長，技能越高，增長越少 -->
+    <<if _adjustedSuspicionIncrease < 1>> <!-- 確保懷疑值增長最小為 1 -->
+        <<set _adjustedSuspicionIncrease to 1>>
+    <</if>>
+
+    <<set $suspicion += _adjustedSuspicionIncrease>> <!-- 增加懷疑值 -->
+    <!-- 更新懷疑值 -->
+    <<set $suspicion = Math.min(100, $suspicion)>> <!-- 確保懷疑值不大於 100 -->
+
+    
+    <!-- 檢查懷疑值是否達到閾值 -->
+    <<if $suspicion >= 50>> <!-- 假設懷疑值達到 50 時觸發反應 -->
+        <!-- 懷疑達到閾值，觸發警告 -->
+        <<set $suspicionResponse to "警戒提升，偷竊風險增加！">>
+    <<else>>
+        <!-- 懷疑值較低 -->
+        <<set $suspicionResponse to "目前沒有人懷疑你的行為。">>
+    <</if>>
+
+    <!-- 記錄懷疑值狀態到 $Baileys_logs -->
+    <<set $Baileys_logs.push(" 竊盜技能: " + $skulduggery + " ，懷疑值增加: " + _adjustedSuspicionIncrease + " ，當前懷疑值: " + $suspicion + " ，狀態: " + $suspicionResponse)>>
+<</widget>>
+
+<<widget "reduceSuspicion">>
+    <!-- 檢查是否存在上次更新懷疑值的日期 -->
+    <<if typeof $lastSuspicionReductionDay === "undefined">>
+        <<set $lastSuspicionReductionDay to Time.days>> <!-- 初始化上次更新日期 -->
+    <</if>>
+
+    <!-- 計算距離上次更新的天數 -->
+    <<set _daysPassed to Time.days - $lastSuspicionReductionDay>>
+
+    <!-- 計算完整的周數 -->
+    <<set _weeksPassed to Math.floor(_daysPassed / 7)>>
+
+    <!-- 如果至少經過 1 周 -->
+    <<if _weeksPassed >= 1>>
+        <!-- 計算每周減少的懷疑值 -->
+        <<set _baseReductionPerWeek to 2>> <!-- 每周基礎減少值 -->
+        <<set _skillMultiplier to Math.min(2, 1 + ($skulduggery / 1000))>> <!-- 偷竊技能影響的倍數，最大為 2 -->
+        <<set _reductionPerWeek to Math.floor(_baseReductionPerWeek * _skillMultiplier)>> <!-- 每周最終減少值 -->
+        <<set _totalReduction to _weeksPassed * _reductionPerWeek>> <!-- 總減少值 -->
+
+        <!-- 更新懷疑值 -->
+        <<set $suspicion = Math.max(0, $suspicion - _totalReduction)>> <!-- 確保懷疑值不低於 0 -->
+
+        <!-- 更新上次減少日期 -->
+        <<set $lastSuspicionReductionDay = Time.days>> <!-- 更新為當前日期 -->
+
+        <!-- 紀錄減少懷疑值到日誌 -->
+        <<set $Baileys_logs.push("第 " + Time.days + " 天，懷疑值減少 " + _totalReduction + " 點（每周減少 " + _reductionPerWeek + " 點，受偷竊技能影響），當前懷疑值：" + $suspicion)>>
+        
+        <!-- 控制台輸出懷疑值變化 -->
+        <<run console.log("懷疑值減少: " + _totalReduction + "，當前懷疑值: " + $suspicion + "（每周減少: " + _reductionPerWeek + " 點，受偷竊技能影響）")>>
+    <</if>>
+<</widget>>
+
+<<widget "displayLogs">>
+    <h2>除錯日誌</h2>
+    <div style="border: 2px solid #000; padding: 10px; width: 90%; max-width: 600px; margin: 0 auto;">
+        <ul>
+            <<for _i = 0; _i < $Baileys_logs.length; _i++>>
+                <li>• <<print $Baileys_logs[_i]>></li>
+            <</for>>
+        </ul>
+    </div>
+<</widget>>

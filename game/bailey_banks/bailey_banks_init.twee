@@ -1,0 +1,117 @@
+:: bailey_banks_init [widget]
+<!-- 初始化貝利存款和保險箱的 Widget -->
+<<widget "initializeBaileysMoney">>
+    <!-- 檢查 $Baileys_money 是否未初始化 -->
+    <<if typeof $Baileys_money === "undefined">>
+        <!-- 初始化貝利存款 -->
+        <<set $Baileys_money to 0>>
+
+        <!-- 設定隨機種子數值 -->
+        <<set _Baileys_money_seed to random(15, 45)>> <!-- 初始化貝利存款的種子 -->
+        
+        <!-- 根據種子值增加貝利的總存款 -->
+        <<for _i to _Baileys_money_seed; _i gt 0; _i-->>
+            <<set $Baileys_money += random(50000, 100000)>> <!-- 每次增加隨機金額 -->
+        <</for>>
+
+        <!-- 初始化保險箱存款 -->
+        <<set $Baileys_safe_money to 0>> <!-- 初始化保險箱存款 -->
+        
+        <!-- 隨機選擇一部分存款放入保險箱 -->
+        <!--以下計算調整方式為：
+        <<set _safe_amount to (Math.random() * (maxValue - minValue) + minValue)>>
+        Math.random()將產生0-1之間的隨機數
+        -->
+        <<set _safe_amount to (Math.random() * (0.3 - 0.1) + 0.1)>> <!-- 設定 10% 到 30% 的金額進入保險箱 -->
+        <<set $Baileys_safe_money to Math.round($Baileys_money * _safe_amount)>> <!-- 計算保險箱存款 -->
+        
+        <!-- 更新可用存款 -->
+        <<set $Baileys_money -= $Baileys_safe_money>> <!-- 可用存款 = 總存款 - 保險箱存款 -->
+
+        <!-- 初始化存款歷史記錄 -->
+        <<if typeof $Baileys_logs === "undefined">>
+            <<set $Baileys_logs to []>> <!-- 初始化存款歷史數組 -->
+        <</if>>
+        <<set $Baileys_logs.push("第 " + Time.days + " 天增加金額:" + $Baileys_money + "，其中金額:" + $Baileys_safe_money + " 放入保險箱，總存款:" + ($Baileys_money + $Baileys_safe_money) + "，保險箱存款:" + $Baileys_safe_money)>> 
+
+        <!-- 初始化上次觸發的天數 -->
+        <<if typeof $last_increase_day === "undefined">>
+            <<set $last_increase_day to Time.days>> <!-- 初始化為 0 -->
+        <</if>>
+    <</if>>
+<</widget>>
+
+<!--懷疑值系統初始化-->
+<<widget "initializeSuspicion">>
+    <!-- 初始化懷疑值，默認為 0 -->
+    <<if typeof $suspicion === "undefined">>
+        <<set $suspicion to 0>> <!-- 初始化為 0 -->
+    <</if>>
+<</widget>>
+
+<!--每七天增加一次存款-->
+<<widget "updateBaileysMoney">>
+    <!-- 計算距離上次更新的天數 -->
+    <<set _daysPassed to Time.days - $last_increase_day>>
+
+    <!-- 計算完整的周數 -->
+    <<set _weeksPassed to Math.floor(_daysPassed / 7)>>
+
+    <!-- 如果至少經過 1 周 -->
+    <<if _weeksPassed >= 1>>
+        <<set _totalIncrease to 0>> <!-- 初始化總增額 -->
+        <<set _totalSafe to 0>> <!-- 初始化保險箱金額 -->
+        <<set _totalDecrease to 0>> <!-- 初始化總減額 -->
+
+        <!-- 按周累計 -->
+        <<for _i = 0; _i < _weeksPassed; _i++>>
+            <!-- 計算當周增額 -->
+            <<if typeof $base_rent === "undefined">> 
+                <<set $current_stage to $current_stage || 1>>
+                <<set $base_rent to [10000, 30000, 50000, 70000, 100000, 150000, 200000][Math.clamp($current_stage, 1, 6)]>>
+                <<set $base_rent = Math.floor($base_rent * $rentmod)>>
+
+                <<if $robinpaid is 1>>
+                    <<set $base_rent *= 2>>
+                <</if>>
+            <</if>>
+                
+            <<set _adjusted_rentmoney to Math.min($rentmoney, $base_rent)>>
+            <<set _random_multiplier to random(3, 15)>>
+            <<set _currentIncrease to Math.floor(_adjusted_rentmoney * _random_multiplier)>>
+
+            <!-- 累加到總金額 -->
+            <<set _totalIncrease += _currentIncrease>>
+
+            <!-- 計算保險箱金額 -->
+            <<set _safe_amount to (Math.random() * (0.3 - 0.1) + 0.1)>>
+            <<set _safe_increase to Math.round(_currentIncrease * _safe_amount)>>
+            <<set _totalSafe += _safe_increase>>
+
+            <!-- 計算當周減額 -->
+            <<set _decrease_percentage to (Math.random() * (0.8 - 0.4) + 0.4)>> <!-- 隨機減少比例40%-80% -->
+            <<set _weeklyDecrease to Math.round(_currentIncrease * _decrease_percentage)>> <!-- 計算減額 -->
+
+            <!-- 檢查保險箱存款是否足夠 -->
+            <<if _weeklyDecrease <= $Baileys_safe_money>>
+                <<set $Baileys_safe_money -= _weeklyDecrease>> <!-- 完全從保險箱扣除 -->
+            <<else>>
+                <<set _remainingDecrease to _weeklyDecrease - $Baileys_safe_money>> <!-- 保險箱不足時，計算剩餘金額 -->
+                <<set $Baileys_safe_money = 0>> <!-- 保險箱扣至 0 -->
+                <<set $Baileys_money -= _remainingDecrease>> <!-- 剩餘部分從可用存款中扣除 -->
+            <</if>>
+
+            <<set _totalDecrease += _weeklyDecrease>> <!-- 累計總支出金額 -->
+        <</for>>
+
+        <!-- 更新存款 -->
+        <<set $Baileys_money += (_totalIncrease - _totalSafe)>>
+        <<set $Baileys_safe_money += _totalSafe>>
+
+        <!-- 更新上次觸發的天數 -->
+        <<set $last_increase_day = Time.days>>
+
+        <!-- 將本次更新的詳細資訊記錄到歷史中 -->
+        <<set $Baileys_logs.push("第" + Time.days + "天，經過" + _weeksPassed + "周，總增加金額:" + _totalIncrease + "，總支出:" + _totalDecrease + "，其中保險箱金額:" + _totalSafe + "，可用存款:" + $Baileys_money + "，保險箱存款:" + $Baileys_safe_money)>>
+    <</if>>
+<</widget>>
