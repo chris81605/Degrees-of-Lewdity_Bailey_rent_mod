@@ -1,0 +1,260 @@
+:: Widgets_rent_acc_mode [widget]
+
+<!--棄用（改用框架註冊時間事件）
+<<widget "rent_acc_mod">>
+    <<if $rent_enabled is undefined>> 
+        <<set $rent_enabled to 1>>
+    <</if>>
+    <<if $rent_Interest is undefined>> 
+        <<set $rent_Interest to 1>>
+    <</if>>
+    <<if $rentstage_step is undefined >>
+        <<set $rentstage_step to "false">>
+    <</if>>
+    
+    <<if $rent_enabled>>
+        <<if $renttime <= -7>> 
+            <<set $days_in_debt to Math.abs($renttime)>>
+            <<set $years_in_debt to Math.floor($days_in_debt / 365)>>
+            <<set $months_in_debt to Math.floor(($days_in_debt % 365) / 30)>>
+            <<set $weeks_in_debt to Math.floor(($days_in_debt % 30) / 7)>>
+            <<set $remaining_days to $days_in_debt % 7>>    
+              
+            <<set $overdue_weeks to Math.ceil($days_in_debt / 7)>> 
+
+            <<set $rentmoney_accumulation to 10000>>
+            <<set $current_stage to $rentstage>>
+
+            <<for _index = 0; _index < $overdue_weeks; _index++>>
+                <<set $base_rent to [10000, 30000, 50000, 70000, 100000, 150000, 200000][Math.clamp($current_stage, 1, 6)]>>
+                <<set $base_rent = Math.floor($base_rent * $rentmod)>>
+
+                <<if $robinpaid is 1>>
+                    <<set $base_rent *= 2>>
+                <</if>>
+
+                <<set $rentmoney_accumulation += $base_rent>>
+                <<if $rentstage_step>>
+                    <<set $current_stage = Math.clamp($current_stage + 1, 1, 6)>>
+                <</if>>    
+            <</for>>
+
+            <<set $baby_rent_accumulated to 0>>
+            <<if $babyRent > 0>>
+                <<set $baby_rent_accumulated = $babyRent * $overdue_weeks>>
+            <</if>>
+
+            <<set $rentmoney = ($rentmoney_accumulation + $baby_rent_accumulated) * $rent_Interest>>
+        <</if>>
+    <<elseif $renttime <7>>
+        <<set $last_rentmoney to $rentmoney>>    
+    <</if>>
+
+<</widget>>
+-->
+
+<<widget "rent_acc_mod_log">>
+    <<if $rent_enabled and $renttime <= -7>> 
+        <li>你正在躲債，你躲了 
+            <<if $years_in_debt>> <span style="color:red;"><<print $years_in_debt>> 年 </span><</if>>
+            <<if $months_in_debt>> <span style="color:red;"><<print $months_in_debt>> 月 </span><</if>>
+            <<if $weeks_in_debt>> <span style="color:red;"><<print $weeks_in_debt>> 週 </span><</if>>
+            <<if $remaining_days>> <span style="color:red;"><<print $remaining_days>> 天</span><</if>>
+        </li>
+        <li>當前應繳租金：<<printmoney $rentmoney>>。</li>
+        <<if $babyRent > 0>>
+            <li>其中，托育租金已累計：<<printmoney $baby_rent_accumulated>>。</li>
+        <</if>>
+    <</if>>
+
+    <<if $renttime lt 0 and $renttime gt -7>> 
+        <li>你消失了<span class="blue"><<print abs($renttime)>>天</span>，贝利正在找你，并且打算收取你欠下的<<printmoney $rentmoney>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>			
+    <<elseif $renttime lte -7 and $renttime gt -14 >>
+        <li>你消失了<span class="purple">好幾天</span>，贝利正在找你，并且打算收取你欠下的<<printmoney $rentmoney>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>		
+    <<elseif $renttime lte -14 and $renttime gt -28>>
+        <li>你消失了<span class="pink"><<print Math.floor(abs($renttime) / 7)>>週</span>，贝利正在打探你的下落，並收取你欠下的<<printmoney $rentmoney>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>
+    <<elseif $renttime lte -28>>	
+        <li>你消失了<span class="red"><<print Math.floor(abs($renttime) / 7)>>週</span>，贝利掘地三尺也要找到你，收取你欠下的<<printmoney $rentmoney>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>
+    <<elseif $renttime is 0>>
+        <li>贝利正在找你，并且打算收取你欠下的<<printmoney $rentmoney>><<babyRentDisplay "还有代替你照顾孩子的" "" "gold">>。</li>
+    <</if>>
+<</widget>>
+
+<<widget "rent_acc_mod_switch">>
+    <div class="settingsHeader options">
+        <span class="gold">貝利瘋狂爆Pc金幣</span>
+    </div>
+    <<if $passage isnot "Start">>
+        <div class="settingsGrid">
+            <div class="settingsToggleItem">
+                <div class="small-description">
+		            積欠的欠款會逐週累計，直到清償為止。<br>
+			        <span class="red">欠債有如滾雪球，永無止境。</span>
+	            </div>
+		        <label><<checkbox "$rent_enabled" false true autocheck>>開啟被爆金幣模式</label>
+		        <mouse class="tooltip linkBlue">(?)
+		            <span>租金累加開啟後，中途關閉，累計的部分將無法取消。</span>
+		        </mouse>
+		        <label><<checkbox "$rentstage_step" false true autocheck>>租金階段累進模式</label>
+		        <mouse class="tooltip linkBlue">(?)
+		            <span>租金階段(rentstage)累進，啟用後每週租金自動步進£100->£300->£500...，租金累計速度驚人，謹慎使用。</span>
+		        </mouse>
+	        </div>
+        </div>
+        <hr>
+        <div class="settingsGrid">
+            <div class="solidBorderContainer clothes-price-container">
+                <div class="small-description">
+		            調整貝利每週索取的金額。預設為100%。<br>
+		            <span class="red">低於 100% 將無法在本存檔中獲得成就。</span><br>
+		            最高倍率可設定超過原版限制，十倍的負債，感受貝利滿滿的惡意。
+	            </div>
+	            <div class="ironman-slider" id="sliderRentMode">
+		            <<numberslider "$rentmod" $rentmod 0.1 10 0.1 $ironmanmode>>
+	            </div>
+	            <hr>
+	            <div class="small-description">
+		            調整欠債後是否收取利息，利息計算方式為總租金的倍數計算（百分比）<br> 
+		            最低為100%代表無利息，最高為1000%，十倍利息再度感受貝利滿滿的惡意。
+	            </div> 
+	            <div class="ironman-slider" id="sliderRent_Interest">
+		            <<numberslider "$rent_Interest" $rent_Interest 1 10 0.1>>
+	            </div>
+	        </div>
+	    </div>
+	    <hr>
+	    <div class="settingsGrid">
+	        <div class="settingsToggleItem">
+	            <<button "保存設置">>
+	                <<set $rentmod to $rentmod>>
+	                <<set $rent_Interest to $rent_Interest>>
+	                <<set $rent_enabled to $rent_enabled>>
+	                <<set $rentstage_step to $rentstage_step>>
+	                <<run State.display($passage)>>
+	            <</button>>
+	        </div>
+	    </div>
+        <!-- Make it show % instead of fractions and add some colour -->
+	    <<run $(() => { $('.clothes-price-container input').on('input change', e => {
+			    let valSpan = $(e.currentTarget).siblings().first();
+			    let value = valSpan.text();
+
+			    valSpan.text((i, value) => Math.round(value * 100) + '%');
+
+			    if (value > 1)
+				    valSpan.css('color', 'gold');
+			    else if (value < 1)
+				    valSpan.css('color', 'green');
+			    else
+				    valSpan.css('color', 'unset');
+	    }).trigger('change') })>>
+	
+        <hr>        
+	    <<if $debug is 1>>
+	        <div class="settingsGrid">
+	            <div class="settingsToggleItem">
+	                <spen class="red">除錯</spen><br>
+	                <div class="small-description">
+	                    請謹慎操作   
+	                </div>
+	                <hr>
+	                <<rent_mod_debug>> 
+	            </div>
+	           
+	        </div>    
+	    <</if>>
+	<</if>>        
+<</widget>>
+
+<<widget "rent_mod_debug">>
+    <<if $debug is 1>> 
+        <!-- 顯示距離交租金時間 -->
+        <p id="renttime-display">距離交租金時間 ("renttime"): <<print $renttime>></p>
+
+        <!-- 顯示當前租金階段 -->
+        <p id="rentstage-display">當前租金階段 ("rentstage"): <<print $rentstage>></p>
+
+        <!-- 顯示當前租金金額 -->
+        <p id="rentmoney-display">當前租金金額 ("rentmoney"): <<printmoney $rentmoney>></p>
+        <!-- 顯示除錯詳細表格 -->
+        <div id="table-display" class="no-numberify">
+            <!-- 顯示變數詳情 -->
+            <<rent_mod_log_table>>
+        </div>
+        <!-- 用來設置值的輸入框 -->
+        <label for="rent-input">輸入新值：</label>
+        <input id="rent-input" type="number" value="0" min="0" step="1000">
+        <br>
+        <!-- 用來選擇更新的項目的選擇框 -->
+        <label for="rent-option">選擇更新項目：</label>
+        <select id="rent-option">
+            <option value="renttime">距離交租金時間</option>
+            <option value="rentstage">租金階段</option>
+        </select>
+        <br>
+            <!-- 合併的設置按鈕 -->
+            <<button "設置">>
+                <<set _newValue to document.getElementById("rent-input").value>> <!-- 讀取輸入框的值 -->
+                <<set _selectedOption to document.getElementById("rent-option").value>> <!-- 讀取選擇框的值 -->
+
+                <<if _newValue != "">> <!-- 檢查值是否為空 -->
+                    <!-- 根據選擇的項目更新對應的變數 -->
+                    <<if _selectedOption is "renttime">>
+                        <<set $renttime to _newValue>> <!-- 更新距離交租金時間 -->  
+                    <</if>>
+
+                    <<if _selectedOption is "rentstage">>
+                        <<set $rentstage to _newValue>> <!-- 更新租金階段 -->
+                    <</if>>
+
+                    
+                <!--更新數據-->
+                <<rent_acc_mod>>
+                <<replace #renttime-display>>距離交租金時間 ("renttime"): <<print $renttime>><</replace>>
+                <<replace #rentstage-display>>當前租金階段 ("rentstage"): <<print $rentstage>><</replace>>
+                <<replace #rentmoney-display>>當前租金金額 ("rentmoney"): <<printmoney $rentmoney>><</replace>>
+                <!-- 顯示變數詳情 -->
+                <<replace #table-display>>
+                    <<rent_mod_log_table>>
+                <</replace>>
+                <<else>> 
+                    <!-- 顯示錯誤提示 -->
+                    <<run alert("請輸入正確數字")>>
+                <</if>>      
+            <</button>>       
+    <</if>>
+<</widget>>
+
+<<widget "rent_mod_log_table">>
+    <details>
+        <summary><strong>變數詳情</strong></summary>
+        <table id="variables-table" border="1">
+            <tr>
+                <th><strong>變數名稱</strong></th>
+                <th><strong>當前數值</strong></th>
+                <th><strong>變數作用</strong></th>
+            </tr>
+            <tr><td>"rent_enabled"</td><td><<print $rent_enabled>></td><td>是否啟用租金累加功能</td></tr>
+            <tr><td>"rentstage_step"</td><td><<print $rentstage_step>></td><td>是否啟用租金階段累進功能</td></tr>
+            <tr><td>"renttime"</td><td><<print $renttime>></td><td>距離交租金時間</td></tr>
+            <tr><td>"rentmoney"</td><td><<print $rentmoney>></td><td>當前租金金額</td></tr>
+            <tr><td>"babyRent"</td><td><<print $babyRent>></td><td>托育金額</td></tr>
+            <tr><td>"base_rent"</td><td><<print $base_rent>></td><td>本週租金金額</td></tr>
+            <tr><td>"rentmoney_accumulation"</td><td><<print $rentmoney_accumulation>></td><td>累積租金金額</td></tr>
+            <tr><td>"current_stage"</td><td><<print $current_stage>></td><td>繳交租金階段</td></tr>
+            <tr><td>"baby_rent_accumulated"</td><td><<print $baby_rent_accumulated>></td><td>托育租金累計</td></tr>
+            <tr><td>"rent_Interest"</td><td><<print $rent_Interest>></td><td>租金利息，1為無利息</td></tr>
+            <!-- 添加更多變數 -->
+            <tr><td>"years_in_debt"</td><td><<print $years_in_debt>></td><td>逃債幾年</td></tr>
+            <tr><td>"months_in_debt"</td><td><<print $months_in_debt>></td><td>逃債幾月</td></tr>
+            <tr><td>"weeks_in_debt"</td><td><<print $weeks_in_debt>></td><td>逃債週數</td></tr>
+            <tr><td>"remaining_days"</td><td><<print $remaining_days>></td><td>逃債天數</td></tr>
+            <tr><td>"overdue_weeks"</td><td><<print $overdue_weeks>></td><td>逾期週數</td></tr>
+            <tr><td>"rentmod"</td><td><<print $rentmod>></td><td>租金倍數</td></tr>
+            <tr><td>"robinpaid"</td><td><<print $robinpaid>></td><td>是否幫 Robin 支付租金</td></tr>
+            <tr><td>"rentstage"</td><td><<print $rentstage>></td><td>當前繳交租金階段</td></tr>
+            <tr><td>"last_rentmoney"</td><td><<print $last_rentmoney>></td><td>紀錄當前租金，用於從小金庫取回場景</td></tr>
+        </table>
+    </details>
+   
+<</widget>>
