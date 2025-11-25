@@ -1,4 +1,6 @@
 :: Widgets_rent_acc_mode [widget]
+
+<!--棄用（改用框架註冊時間事件）
 <<widget "rent_acc_mod">>
     <<if $rent_enabled is undefined>> 
         <<set $rent_enabled to 1>>
@@ -49,7 +51,8 @@
     <</if>>
 
 <</widget>>
-	
+-->
+
 <<widget "rent_acc_mod_log">>
     <<if $rent_enabled and $renttime <= -7>> 
         <li>你正在躲債，你躲了 
