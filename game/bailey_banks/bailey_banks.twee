@@ -2,8 +2,10 @@
 <!--貝利的保險箱場景-->
 <<initializeBaileysMoney>><!--初始化貝利的存款-->
 <<initializeSuspicion>><!--初始化懷疑值系統-->
-<<updateBaileysMoney>><!--更新貝利的存款-->
-<<reduceSuspicion>><!--觸法減少懷疑值-->
+<!-- 已棄用
+<<updateBaileysMoney>>    
+更新貝利的存款-->
+<<reduceSuspicion>><!--觸發減少懷疑值-->
 <!--清空除錯日誌-->
 <<if $debug is 0>>
     <<set $Baileys_logs to []>>    
