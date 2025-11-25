@@ -1,20 +1,20 @@
 {
   "name": "Bailey rent mod",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "styleFileList": [],
-  "scriptFileList": [],
+  "scriptFileList": [
+    "scripts/brm_rentAccrual.js",
+    "scripts/bb_BaileyBanksInit.js"
+  ],
   "scriptFileList_preload":["scriptPreload/brm_regist.js"],
   "scriptFileList_inject_early": ["scriptEarly/brm_framework_detector.js"],
   "tweeFileList": [
     "game/Widgets_rent_acc_mode.twee",
-    "game/bailey_banks/bailey_banks_init.twee",
     "game/bailey_banks/bailey_banks_widget.twee",
     "game/bailey_banks/bailey_banks.twee",
     "game/bailey_banks/bailey_banks_steal.twee"
   ],
-  "imgFileList": [
-    "preview.jpg"
-  ],
+  "imgFileList": [],
   "additionFile": [
     "readme.md",
     "preview.jpg",

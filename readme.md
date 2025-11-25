@@ -19,6 +19,9 @@
   
 ![img](https://github.com/chris81605/Degrees-of-Lewdity_Bailey_rent_mod/blob/main/preview.jpg)
 # 更新日誌
+**2.1.0**  
+1. 嘗試用js重構部分代碼，目標是多數涉及計算的代碼都用js取代。  
+
 **2.0.1**  
 1. 增加對[maplebirchframework][MF]的兼容性  
  
